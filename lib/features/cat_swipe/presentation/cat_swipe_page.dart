@@ -81,7 +81,7 @@ class _CatSwipePageState extends State<CatSwipePage>
       if (mounted) setState(() => _showLikeBurst = false);
     });
   }
-  
+
   // Плавная анимация ухода карточки
   Future<void> _animateSwipe({required bool toRight}) async {
     if (_isAnimating) return;
@@ -107,7 +107,7 @@ class _CatSwipePageState extends State<CatSwipePage>
       _animateSwipe(toRight: false);
     }
   }
-  
+
   Future<void> _initPrefs() async {
     _prefs = await SharedPreferences.getInstance();
 

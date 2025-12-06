@@ -13,6 +13,12 @@ class AnimatedPawsBackground extends StatefulWidget {
 
 class _AnimatedPawsBackgroundState extends State<AnimatedPawsBackground>
     with SingleTickerProviderStateMixin {
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
   late final AnimationController _controller;
 
   final int pawCount = 14;
