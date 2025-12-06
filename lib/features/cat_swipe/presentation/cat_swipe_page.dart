@@ -18,7 +18,8 @@ class CatSwipePage extends StatefulWidget {
   State<CatSwipePage> createState() => _CatSwipePageState();
 }
 
-class _CatSwipePageState extends State<CatSwipePage> {
+class _CatSwipePageState extends State<CatSwipePage>
+    with SingleTickerProviderStateMixin {
   final _apiClient = CatApiClient();
 
   late SharedPreferences _prefs;
@@ -31,12 +32,70 @@ class _CatSwipePageState extends State<CatSwipePage> {
   List<CatImage> _likedCats = [];
   int _likes = 0;
 
+  late AnimationController _swipeController;
+  late Animation<double> _swipeAnimation;
+
+  double _swipeOffset = 0;
+  double _swipeAngle = 0;
+  bool _isAnimating = false;
+
   @override
   void initState() {
     super.initState();
     _initPrefs();
     _loadCat();
+
+    _swipeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 450),
+    );
+
+    _swipeAnimation = CurvedAnimation(
+      parent: _swipeController,
+      curve: Curves.easeOutCubic,
+    );
+
+    _swipeController.addListener(() {
+      setState(() {
+        _swipeOffset = _swipeAnimation.value;
+      });
+    });
+
+    _swipeController.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        _swipeController.reset();
+        _swipeOffset = 0;
+        _swipeAngle = 0;
+        _isAnimating = false;
+      }
+    });
   }
+
+  // Плавная анимация ухода карточки
+  Future<void> _animateSwipe({required bool toRight}) async {
+    if (_isAnimating) return;
+    _isAnimating = true;
+
+    _swipeAngle = toRight ? 0.35 : -0.35;
+
+    _swipeController.forward().then((_) {
+      toRight ? _like() : _dislike();
+    });
+  }
+
+  // Обработка свайпа
+  void _handleSwipe(DragEndDetails details) {
+    final dx = details.velocity.pixelsPerSecond.dx;
+    if (dx > 300) {
+      _triggerLikeSwipe();
+    } else if (dx < -300) {
+      _triggerDislikeSwipe();
+    }
+  }
+
+  void _triggerLikeSwipe() => _animateSwipe(toRight: true);
+
+  void _triggerDislikeSwipe() => _animateSwipe(toRight: false);
 
   Future<void> _initPrefs() async {
     _prefs = await SharedPreferences.getInstance();
@@ -85,7 +144,7 @@ class _CatSwipePageState extends State<CatSwipePage> {
     setState(() {
       _currentCat = _nextCat;
     });
-    _prepareNextCat(); // предзагружаем следующего
+    _prepareNextCat();
   }
 
   @override
@@ -121,12 +180,46 @@ class _CatSwipePageState extends State<CatSwipePage> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _buildSwipeCard(),
+        _buildAnimatedSwipeCard(),
         const SizedBox(height: 16),
         _buildBreedName(),
         const SizedBox(height: 20),
         _buildButtons(),
       ],
+    );
+  }
+
+  Widget _buildAnimatedSwipeCard() {
+    return AnimatedBuilder(
+      animation: _swipeController,
+      builder: (_, child) {
+        final offsetX = _swipeOffset * (_swipeAngle > 0 ? 500 : -500);
+        final opacity = 1 - _swipeAnimation.value;
+
+        return Stack(
+          alignment: Alignment.center,
+          children: [
+            Opacity(
+              opacity: opacity.clamp(0.0, 1.0),
+              child: Transform.translate(
+                offset: Offset(offsetX, 0),
+                child: Transform.rotate(
+                  angle: _swipeAngle * _swipeAnimation.value,
+                  child: child,
+                ),
+              ),
+            ),
+
+            _SwipeOverlay(
+              progress: _swipeAnimation.value,
+              direction: _swipeAngle > 0
+                  ? SwipeDirection.right
+                  : SwipeDirection.left,
+            ),
+          ],
+        );
+      },
+      child: _buildSwipeCard(),
     );
   }
 
@@ -142,12 +235,15 @@ class _CatSwipePageState extends State<CatSwipePage> {
           child: CachedNetworkImage(
             imageUrl: _currentCat!.url,
             fit: BoxFit.cover,
+            placeholder: (_, _) {
+              final primary = Theme.of(context).colorScheme.primary;
 
-            placeholder: (_, _) => Shimmer.fromColors(
-              baseColor: Colors.grey.shade300,
-              highlightColor: Colors.grey.shade100,
-              child: Container(color: Colors.white),
-            ),
+              return Shimmer.fromColors(
+                baseColor: primary.withValues(alpha: 0.25),
+                highlightColor: primary.withValues(alpha: 0.15),
+                child: Container(color: Colors.white),
+              );
+            },
 
             errorWidget: (_, _, _) => const Icon(Icons.error),
           ),
@@ -172,26 +268,16 @@ class _CatSwipePageState extends State<CatSwipePage> {
         IconButton(
           iconSize: 48,
           icon: const Icon(Icons.close, color: Colors.red),
-          onPressed: _dislike,
+          onPressed: _triggerDislikeSwipe,
         ),
         const SizedBox(width: 40),
         IconButton(
           iconSize: 48,
-          icon: const Icon(Icons.favorite, color: Colors.green),
-          onPressed: _like,
+          icon: const Icon(Icons.favorite, color: Colors.red),
+          onPressed: _triggerLikeSwipe,
         ),
       ],
     );
-  }
-
-  void _handleSwipe(DragEndDetails details) {
-    final velocity = details.velocity.pixelsPerSecond.dx;
-
-    if (velocity > 300) {
-      _like();
-    } else if (velocity < -300) {
-      _dislike();
-    }
   }
 
   void _like() {
@@ -238,5 +324,46 @@ class _CatSwipePageState extends State<CatSwipePage> {
         );
       });
     }
+  }
+}
+
+enum SwipeDirection { left, right }
+
+class _SwipeOverlay extends StatelessWidget {
+  final double progress;
+  final SwipeDirection direction;
+
+  const _SwipeOverlay({required this.progress, required this.direction});
+
+  @override
+  Widget build(BuildContext context) {
+    if (progress == 0) return const SizedBox.shrink();
+
+    final isRight = direction == SwipeDirection.right;
+
+    return Opacity(
+      opacity: (progress * 1.2).clamp(0.0, 1.0),
+      child: Transform.rotate(
+        angle: isRight ? -0.4 : 0.4,
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: isRight ? Colors.red : Colors.red,
+              width: 4,
+            ),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Text(
+            isRight ? "LIKE ❤️" : "NOPE ❌",
+            style: TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.w900,
+              color: isRight ? Colors.red : Colors.red,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
