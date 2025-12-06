@@ -8,6 +8,8 @@ import '../../../common/services/api/cat_api_client.dart';
 import '../../../common/models/cat_image.dart';
 import '../../../common/ui/error_dialog.dart';
 import '../../../common/ui/animated_background.dart';
+import '../../../common/ui/like_burst.dart';
+
 import 'cat_details_page.dart';
 import 'liked_cats_page.dart';
 
@@ -38,6 +40,7 @@ class _CatSwipePageState extends State<CatSwipePage>
   double _swipeOffset = 0;
   double _swipeAngle = 0;
   bool _isAnimating = false;
+  bool _showLikeBurst = false;
 
   @override
   void initState() {
@@ -71,12 +74,24 @@ class _CatSwipePageState extends State<CatSwipePage>
     });
   }
 
+  void _triggerLikeBurst() {
+    setState(() => _showLikeBurst = true);
+
+    Future.delayed(const Duration(milliseconds: 900), () {
+      if (mounted) setState(() => _showLikeBurst = false);
+    });
+  }
+  
   // Плавная анимация ухода карточки
   Future<void> _animateSwipe({required bool toRight}) async {
     if (_isAnimating) return;
     _isAnimating = true;
 
     _swipeAngle = toRight ? 0.35 : -0.35;
+
+    if (toRight) {
+      _triggerLikeBurst();
+    }
 
     _swipeController.forward().then((_) {
       toRight ? _like() : _dislike();
@@ -87,16 +102,12 @@ class _CatSwipePageState extends State<CatSwipePage>
   void _handleSwipe(DragEndDetails details) {
     final dx = details.velocity.pixelsPerSecond.dx;
     if (dx > 300) {
-      _triggerLikeSwipe();
+      _animateSwipe(toRight: true);
     } else if (dx < -300) {
-      _triggerDislikeSwipe();
+      _animateSwipe(toRight: false);
     }
   }
-
-  void _triggerLikeSwipe() => _animateSwipe(toRight: true);
-
-  void _triggerDislikeSwipe() => _animateSwipe(toRight: false);
-
+  
   Future<void> _initPrefs() async {
     _prefs = await SharedPreferences.getInstance();
 
@@ -149,26 +160,45 @@ class _CatSwipePageState extends State<CatSwipePage>
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+
     return Scaffold(
-      appBar: _buildAppBar(context),
+      appBar: _buildAppBar(),
       body: AnimatedPawsBackground(
-        child: Center(
-          child: _loading || _currentCat == null
-              ? const CircularProgressIndicator()
-              : _buildContent(),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Center(
+              child: _loading || _currentCat == null
+                  ? const CircularProgressIndicator()
+                  : _buildContent(primary),
+            ),
+
+            if (_showLikeBurst)
+              Positioned(
+                child: LikeBurst(color: Colors.red, onFinished: () {}),
+              ),
+          ],
         ),
       ),
     );
   }
 
-  AppBar _buildAppBar(BuildContext context) {
+  AppBar _buildAppBar() {
     return AppBar(
       leading: GestureDetector(
         onTap: () => _openLikedCats(context),
         child: Padding(
-          padding: const EdgeInsets.only(left: 16),
-          child: Center(
-            child: Text('❤️ $_likes', style: const TextStyle(fontSize: 18)),
+          padding: const EdgeInsets.only(left: 12),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              children: [
+                const Text("❤️", style: TextStyle(fontSize: 22)),
+                const SizedBox(width: 4),
+                Text("$_likes", style: const TextStyle(fontSize: 20)),
+              ],
+            ),
           ),
         ),
       ),
@@ -176,11 +206,11 @@ class _CatSwipePageState extends State<CatSwipePage>
     );
   }
 
-  Widget _buildContent() {
+  Widget _buildContent(Color primary) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _buildAnimatedSwipeCard(),
+        _buildAnimatedSwipeCard(primary),
         const SizedBox(height: 16),
         _buildBreedName(),
         const SizedBox(height: 20),
@@ -189,7 +219,7 @@ class _CatSwipePageState extends State<CatSwipePage>
     );
   }
 
-  Widget _buildAnimatedSwipeCard() {
+  Widget _buildAnimatedSwipeCard(Color primary) {
     return AnimatedBuilder(
       animation: _swipeController,
       builder: (_, child) {
@@ -198,6 +228,7 @@ class _CatSwipePageState extends State<CatSwipePage>
 
         return Stack(
           alignment: Alignment.center,
+          clipBehavior: Clip.none,
           children: [
             Opacity(
               opacity: opacity.clamp(0.0, 1.0),
@@ -219,11 +250,11 @@ class _CatSwipePageState extends State<CatSwipePage>
           ],
         );
       },
-      child: _buildSwipeCard(),
+      child: _buildSwipeCard(primary),
     );
   }
 
-  Widget _buildSwipeCard() {
+  Widget _buildSwipeCard(Color primary) {
     return GestureDetector(
       onTap: _openCatDetails,
       onPanEnd: _handleSwipe,
@@ -235,16 +266,11 @@ class _CatSwipePageState extends State<CatSwipePage>
           child: CachedNetworkImage(
             imageUrl: _currentCat!.url,
             fit: BoxFit.cover,
-            placeholder: (_, _) {
-              final primary = Theme.of(context).colorScheme.primary;
-
-              return Shimmer.fromColors(
-                baseColor: primary.withValues(alpha: 0.25),
-                highlightColor: primary.withValues(alpha: 0.15),
-                child: Container(color: Colors.white),
-              );
-            },
-
+            placeholder: (_, _) => Shimmer.fromColors(
+              baseColor: primary.withValues(alpha: 0.25),
+              highlightColor: primary.withValues(alpha: 0.15),
+              child: Container(color: Colors.white),
+            ),
             errorWidget: (_, _, _) => const Icon(Icons.error),
           ),
         ),
@@ -268,13 +294,16 @@ class _CatSwipePageState extends State<CatSwipePage>
         IconButton(
           iconSize: 48,
           icon: const Icon(Icons.close, color: Colors.red),
-          onPressed: _triggerDislikeSwipe,
+          onPressed: () => _animateSwipe(toRight: false),
         ),
         const SizedBox(width: 40),
         IconButton(
           iconSize: 48,
           icon: const Icon(Icons.favorite, color: Colors.red),
-          onPressed: _triggerLikeSwipe,
+          onPressed: () {
+            _triggerLikeBurst();
+            _animateSwipe(toRight: true);
+          },
         ),
       ],
     );
@@ -284,7 +313,6 @@ class _CatSwipePageState extends State<CatSwipePage>
     setState(() {
       _likes++;
       _prefs.setInt('likes', _likes);
-
       _likedCats.add(_currentCat!);
       _prefs.setStringList(
         'likedCats',
@@ -295,9 +323,7 @@ class _CatSwipePageState extends State<CatSwipePage>
     _showNextCat();
   }
 
-  void _dislike() {
-    _showNextCat();
-  }
+  void _dislike() => _showNextCat();
 
   void _openCatDetails() {
     if (_currentCat == null) return;
