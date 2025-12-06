@@ -7,6 +7,7 @@ import 'package:shimmer/shimmer.dart';
 import '../../../common/services/api/cat_api_client.dart';
 import '../../../common/models/cat_image.dart';
 import '../../../common/ui/error_dialog.dart';
+import '../../../common/ui/animated_background.dart';
 import 'cat_details_page.dart';
 import 'liked_cats_page.dart';
 
@@ -91,10 +92,12 @@ class _CatSwipePageState extends State<CatSwipePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: _buildAppBar(context),
-      body: Center(
-        child: _loading || _currentCat == null
-            ? const CircularProgressIndicator()
-            : _buildContent(),
+      body: AnimatedPawsBackground(
+        child: Center(
+          child: _loading || _currentCat == null
+              ? const CircularProgressIndicator()
+              : _buildContent(),
+        ),
       ),
     );
   }
