@@ -40,7 +40,7 @@ class MewinderApp extends StatelessWidget {
 
   AppBar _buildDesktopAppBar() {
     return AppBar(
-      title: const Text('Mewinder'),
+      toolbarHeight: 0,
       bottom: const TabBar(
         tabs: [
           Tab(icon: Icon(Icons.pets), text: 'Swipes'),
