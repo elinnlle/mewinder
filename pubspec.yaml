@@ -35,5 +35,13 @@ dev_dependencies:
   # Набор линтов от Flutter
   flutter_lints: ^6.0.0
 
+  # Генератор иконок приложения
+  flutter_launcher_icons: ^0.13.1
+
 flutter:
   uses-material-design: true
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/mewinder_icon.png"
