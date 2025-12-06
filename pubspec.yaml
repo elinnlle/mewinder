@@ -25,6 +25,9 @@ dependencies:
   # Локальное хранилище 
   shared_preferences: ^2.2.2
 
+  # Placeholder-анимация Shimmer для красивой загрузки изображений
+  shimmer: ^3.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

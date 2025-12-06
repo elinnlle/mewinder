@@ -17,7 +17,6 @@ class _BreedsPageState extends State<BreedsPage> {
 
   List<CatBreed> _breeds = [];
   bool _loading = true;
-  String? _error;
 
   @override
   void initState() {
@@ -28,7 +27,6 @@ class _BreedsPageState extends State<BreedsPage> {
   Future<void> _loadBreeds() async {
     setState(() {
       _loading = true;
-      _error = null;
     });
 
     try {

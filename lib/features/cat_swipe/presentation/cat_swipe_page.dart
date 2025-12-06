@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shimmer/shimmer.dart';
 
 import '../../../common/services/api/cat_api_client.dart';
 import '../../../common/models/cat_image.dart';
@@ -22,8 +23,9 @@ class _CatSwipePageState extends State<CatSwipePage> {
   late SharedPreferences _prefs;
 
   CatImage? _currentCat;
+  CatImage? _nextCat;
+
   bool _loading = false;
-  String? _error;
 
   List<CatImage> _likedCats = [];
   int _likes = 0;
@@ -52,14 +54,16 @@ class _CatSwipePageState extends State<CatSwipePage> {
   }
 
   Future<void> _loadCat() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
+    setState(() => _loading = true);
 
     try {
-      final cat = await _apiClient.fetchRandomCat();
-      setState(() => _currentCat = cat);
+      final current = await _apiClient.fetchRandomCat();
+      final next = await _apiClient.fetchRandomCat();
+
+      setState(() {
+        _currentCat = current;
+        _nextCat = next;
+      });
     } catch (e) {
       await showErrorDialog(context, e.toString());
     } finally {
@@ -67,16 +71,30 @@ class _CatSwipePageState extends State<CatSwipePage> {
     }
   }
 
+  Future<void> _prepareNextCat() async {
+    try {
+      final newCat = await _apiClient.fetchRandomCat();
+      setState(() => _nextCat = newCat);
+    } catch (e) {
+      await showErrorDialog(context, e.toString());
+    }
+  }
+
+  void _showNextCat() {
+    setState(() {
+      _currentCat = _nextCat;
+    });
+    _prepareNextCat(); // предзагружаем следующего
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: _buildAppBar(context),
       body: Center(
-        child: _loading
+        child: _loading || _currentCat == null
             ? const CircularProgressIndicator()
-            : _currentCat == null
-                ? _buildNoData()
-                : _buildContent(),
+            : _buildContent(),
       ),
     );
   }
@@ -94,10 +112,6 @@ class _CatSwipePageState extends State<CatSwipePage> {
       ),
       title: const Text('Mewinder'),
     );
-  }
-
-  Widget _buildNoData() {
-    return const Text('No data 🐈');
   }
 
   Widget _buildContent() {
@@ -125,8 +139,13 @@ class _CatSwipePageState extends State<CatSwipePage> {
           child: CachedNetworkImage(
             imageUrl: _currentCat!.url,
             fit: BoxFit.cover,
-            placeholder: (_, __) =>
-                const Center(child: CircularProgressIndicator()),
+
+            placeholder: (_, __) => Shimmer.fromColors(
+              baseColor: Colors.grey.shade300,
+              highlightColor: Colors.grey.shade100,
+              child: Container(color: Colors.white),
+            ),
+
             errorWidget: (_, __, ___) => const Icon(Icons.error),
           ),
         ),
@@ -184,20 +203,19 @@ class _CatSwipePageState extends State<CatSwipePage> {
       );
     });
 
-    _loadCat();
+    _showNextCat();
   }
 
   void _dislike() {
-    _loadCat();
+    _showNextCat();
   }
 
   void _openCatDetails() {
-    final cat = _currentCat;
-    if (cat == null) return;
+    if (_currentCat == null) return;
 
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => CatDetailsPage(cat: cat),
+        builder: (_) => CatDetailsPage(cat: _currentCat!),
       ),
     );
   }
