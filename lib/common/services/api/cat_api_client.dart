@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../../models/cat_image.dart';
+import '../../models/cat_breed.dart';
 import '../../../secrets.dart';
 
 class CatApiClient {

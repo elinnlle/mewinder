@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../../common/models/cat_image.dart';
+import '../../../common/models/cat_breed.dart';
 
 class CatDetailsPage extends StatelessWidget {
   final CatImage cat;
@@ -38,7 +39,7 @@ class CatDetailsPage extends StatelessWidget {
         _buildImage(),
         const SizedBox(height: 16),
         if (breed != null)
-          _buildBreedInfo(context, breed)
+          _BreedInfo(breed: breed)
         else
           _buildEmptyBreedInfo(),
       ],
@@ -55,60 +56,96 @@ class CatDetailsPage extends StatelessWidget {
           fit: BoxFit.cover,
           placeholder: (_, __) =>
               const Center(child: CircularProgressIndicator()),
-          errorWidget: (_, __, ___) =>
-              const Center(child: Icon(Icons.error)),
+          errorWidget: (_, __, ___) => const Center(child: Icon(Icons.error)),
         ),
       ),
     );
   }
 
-  Widget _buildBreedInfo(BuildContext context, CatBreed breed) {
+  Widget _buildEmptyBreedInfo() {
+    return const Padding(
+      padding: EdgeInsets.only(top: 20),
+      child: Text(
+        'Breed information is not available 🙈',
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+}
+
+class _BreedInfo extends StatelessWidget {
+  final CatBreed breed;
+
+  const _BreedInfo({required this.breed});
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          breed.name,
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-        ),
-        const SizedBox(height: 8),
+        _buildTitle(context),
+        const SizedBox(height: 12),
 
-        if (breed.origin != null && breed.origin!.isNotEmpty) ...[
-          Text(
-            'Country of origin:',
-            style: Theme.of(context).textTheme.labelLarge,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            breed.origin!,
-            style: Theme.of(context).textTheme.bodyLarge,
-          ),
-          const SizedBox(height: 12),
-        ],
+        if (_hasOrigin) _buildOrigin(context),
+        if (_hasOrigin) const SizedBox(height: 16),
 
-        if (breed.description != null && breed.description!.isNotEmpty) ...[
-          Text(
-            'Description',
-            style: Theme.of(context).textTheme.labelLarge,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            breed.description!,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  height: 1.3,
-                ),
-            textAlign: TextAlign.justify,
-          ),
-        ],
+        if (_hasDescription) _buildDescription(context),
       ],
     );
   }
 
-  Widget _buildEmptyBreedInfo() {
-    return const Text(
-      'Breed information is not available 🙈',
-      textAlign: TextAlign.center,
+  bool get _hasOrigin => breed.origin != null && breed.origin!.isNotEmpty;
+  bool get _hasDescription =>
+      breed.description != null && breed.description!.isNotEmpty;
+
+  Widget _buildTitle(BuildContext context) {
+    return Text(
+      breed.name,
+      style: Theme.of(context)
+          .textTheme
+          .headlineSmall
+          ?.copyWith(fontWeight: FontWeight.w700),
+    );
+  }
+
+  Widget _buildOrigin(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Country of origin:',
+          style: Theme.of(context)
+              .textTheme
+              .titleMedium
+              ?.copyWith(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          breed.origin!,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(height: 1.3),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDescription(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Description:',
+          style: Theme.of(context)
+              .textTheme
+              .titleMedium
+              ?.copyWith(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          breed.description!,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(height: 1.3),
+          textAlign: TextAlign.justify,
+        ),
+      ],
     );
   }
 }

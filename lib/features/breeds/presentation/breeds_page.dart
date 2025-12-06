@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../common/services/api/cat_api_client.dart';
-import '../../../common/models/cat_image.dart';
+import '../../../common/models/cat_breed.dart';
 import 'breed_details_page.dart';
 
 class BreedsPage extends StatefulWidget {
