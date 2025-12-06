@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../../common/services/api/cat_api_client.dart';
 import '../../../common/models/cat_image.dart';
+import 'cat_details_page.dart';
 
 class CatSwipePage extends StatefulWidget {
   const CatSwipePage({super.key});
@@ -49,45 +50,52 @@ class _CatSwipePageState extends State<CatSwipePage> {
         child: _loading
             ? const CircularProgressIndicator()
             : _error != null
-                ? Text(
-                    'Ошибка: $_error',
-                    style: const TextStyle(color: Colors.red),
-                  )
-                : _currentCat == null
-                    ? const Text('Нет данных 🐈')
-                    : Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          ClipRRect(
-  borderRadius: BorderRadius.circular(12), // чуть скруглим — эстетично
-  child: SizedBox(
-    width: 300,
-    height: 300,
-    child: CachedNetworkImage(
-      imageUrl: _currentCat!.url,
-      fit: BoxFit.cover, // заполняет квадрат полностью
-      placeholder: (_, __) => const Center(
-        child: CircularProgressIndicator(),
-      ),
-      errorWidget: (_, __, ___) => const Icon(Icons.error),
-    ),
-  ),
-),
+            ? Text('Ошибка: $_error', style: const TextStyle(color: Colors.red))
+            : _currentCat == null
+            ? const Text('Нет данных 🐈')
+            : Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      final cat = _currentCat;
+                      if (cat == null) return;
 
-                          const SizedBox(height: 16),
-                          Text(
-                            _currentCat!.breeds.isNotEmpty
-                                ? _currentCat!.breeds.first.name
-                                : 'Неизвестная порода',
-                            style: const TextStyle(fontSize: 20),
-                          ),
-                          const SizedBox(height: 20),
-                          ElevatedButton(
-                            onPressed: _loadCat,
-                            child: const Text('Следующий котик'),
-                          ),
-                        ],
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => CatDetailsPage(cat: cat),
+                        ),
+                      );
+                    },
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: SizedBox(
+                        width: 300,
+                        height: 300,
+                        child: CachedNetworkImage(
+                          imageUrl: _currentCat!.url,
+                          fit: BoxFit.cover, // заполняет квадрат полностью
+                          placeholder: (_, __) =>
+                              const Center(child: CircularProgressIndicator()),
+                          errorWidget: (_, __, ___) => const Icon(Icons.error),
+                        ),
                       ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    _currentCat!.breeds.isNotEmpty
+                        ? _currentCat!.breeds.first.name
+                        : 'Неизвестная порода',
+                    style: const TextStyle(fontSize: 20),
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: _loadCat,
+                    child: const Text('Следующий котик'),
+                  ),
+                ],
+              ),
       ),
     );
   }
