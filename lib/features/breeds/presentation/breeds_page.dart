@@ -33,6 +33,7 @@ class _BreedsPageState extends State<BreedsPage> {
       final breeds = await _api.fetchBreeds();
       setState(() => _breeds = breeds);
     } catch (e) {
+      if (!mounted) return;
       await showErrorDialog(context, e.toString());
     } finally {
       setState(() => _loading = false);
@@ -72,9 +73,7 @@ class _BreedsPageState extends State<BreedsPage> {
   void _openBreedDetails(CatBreed breed) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => BreedDetailsPage(breed: breed),
-      ),
+      MaterialPageRoute(builder: (_) => BreedDetailsPage(breed: breed)),
     );
   }
 }

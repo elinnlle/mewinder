@@ -2,4 +2,20 @@ include: package:flutter_lints/flutter.yaml
 
 linter:
   rules:
-    # Здесь возможно будут дополнительные правила.
+    # Улучшение читаемости
+    prefer_const_constructors: true
+    prefer_const_literals_to_create_immutables: true
+    prefer_final_fields: true
+    prefer_final_locals: true
+
+    # Чистота кода
+    avoid_print: true
+    avoid_redundant_argument_values: true
+    avoid_unnecessary_containers: true
+    unnecessary_const: true
+    unnecessary_new: true
+
+    # Безопасность и стиль
+    always_declare_return_types: true
+    annotate_overrides: true
+    use_key_in_widget_constructors: true

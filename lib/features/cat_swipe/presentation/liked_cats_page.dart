@@ -45,15 +45,13 @@ class _LikedCatsPageState extends State<LikedCatsPage> {
   }
 
   Widget _buildEmptyPlaceholder() {
-    return const Center(
-      child: Text('No liked cats yet 😿'),
-    );
+    return const Center(child: Text('No liked cats yet 😿'));
   }
 
   Widget _buildListView() {
     return ListView.separated(
       itemCount: _cats.length,
-      separatorBuilder: (_, __) => const Divider(),
+      separatorBuilder: (_, _) => const Divider(),
       itemBuilder: (context, index) => _buildListTile(context, index),
     );
   }
@@ -76,10 +74,7 @@ class _LikedCatsPageState extends State<LikedCatsPage> {
       child: SizedBox(
         width: 60,
         height: 60,
-        child: CachedNetworkImage(
-          imageUrl: cat.url,
-          fit: BoxFit.cover,
-        ),
+        child: CachedNetworkImage(imageUrl: cat.url, fit: BoxFit.cover),
       ),
     );
   }
@@ -94,9 +89,7 @@ class _LikedCatsPageState extends State<LikedCatsPage> {
   void _openCatDetails(CatImage cat) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => CatDetailsPage(cat: cat),
-      ),
+      MaterialPageRoute(builder: (_) => CatDetailsPage(cat: cat)),
     );
   }
 

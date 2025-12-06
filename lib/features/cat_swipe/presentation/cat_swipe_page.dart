@@ -45,9 +45,7 @@ class _CatSwipePageState extends State<CatSwipePage> {
 
       _likedCats = (_prefs.getStringList('likedCats') ?? [])
           .map(
-            (e) => CatImage.fromJson(
-              Map<String, dynamic>.from(jsonDecode(e)),
-            ),
+            (e) => CatImage.fromJson(Map<String, dynamic>.from(jsonDecode(e))),
           )
           .toList();
     });
@@ -65,6 +63,7 @@ class _CatSwipePageState extends State<CatSwipePage> {
         _nextCat = next;
       });
     } catch (e) {
+      if (!mounted) return;
       await showErrorDialog(context, e.toString());
     } finally {
       setState(() => _loading = false);
@@ -76,6 +75,7 @@ class _CatSwipePageState extends State<CatSwipePage> {
       final newCat = await _apiClient.fetchRandomCat();
       setState(() => _nextCat = newCat);
     } catch (e) {
+      if (!mounted) return;
       await showErrorDialog(context, e.toString());
     }
   }
@@ -140,13 +140,13 @@ class _CatSwipePageState extends State<CatSwipePage> {
             imageUrl: _currentCat!.url,
             fit: BoxFit.cover,
 
-            placeholder: (_, __) => Shimmer.fromColors(
+            placeholder: (_, _) => Shimmer.fromColors(
               baseColor: Colors.grey.shade300,
               highlightColor: Colors.grey.shade100,
               child: Container(color: Colors.white),
             ),
 
-            errorWidget: (_, __, ___) => const Icon(Icons.error),
+            errorWidget: (_, _, _) => const Icon(Icons.error),
           ),
         ),
       ),
@@ -214,18 +214,14 @@ class _CatSwipePageState extends State<CatSwipePage> {
     if (_currentCat == null) return;
 
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => CatDetailsPage(cat: _currentCat!),
-      ),
+      MaterialPageRoute(builder: (_) => CatDetailsPage(cat: _currentCat!)),
     );
   }
 
   Future<void> _openLikedCats(BuildContext context) async {
     final updatedList = await Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => LikedCatsPage(likedCats: _likedCats),
-      ),
+      MaterialPageRoute(builder: (_) => LikedCatsPage(likedCats: _likedCats)),
     );
 
     if (updatedList != null) {

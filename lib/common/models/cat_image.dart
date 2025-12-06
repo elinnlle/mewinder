@@ -6,11 +6,7 @@ class CatImage {
   final String url;
   final List<CatBreed> breeds;
 
-  CatImage({
-    required this.id,
-    required this.url,
-    required this.breeds,
-  });
+  CatImage({required this.id, required this.url, required this.breeds});
 
   /// Создание объекта из JSON
   factory CatImage.fromJson(Map<String, dynamic> json) {

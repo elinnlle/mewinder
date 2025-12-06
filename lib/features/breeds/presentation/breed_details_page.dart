@@ -18,9 +18,7 @@ class BreedDetailsPage extends StatelessWidget {
   }
 
   AppBar _buildAppBar() {
-    return AppBar(
-      title: Text(breed.name),
-    );
+    return AppBar(title: Text(breed.name));
   }
 
   Widget _buildContent(BuildContext context) {
@@ -48,16 +46,12 @@ class BreedDetailsPage extends StatelessWidget {
       children: [
         Text(
           'Country of origin:',
-          style: Theme.of(context)
-              .textTheme
-              .titleMedium
-              ?.copyWith(fontWeight: FontWeight.bold),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 4),
-        Text(
-          breed.origin!,
-          style: Theme.of(context).textTheme.bodyMedium,
-        ),
+        Text(breed.origin!, style: Theme.of(context).textTheme.bodyMedium),
       ],
     );
   }
@@ -68,10 +62,9 @@ class BreedDetailsPage extends StatelessWidget {
       children: [
         Text(
           'Characteristics:',
-          style: Theme.of(context)
-              .textTheme
-              .titleMedium
-              ?.copyWith(fontWeight: FontWeight.bold),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
 
@@ -98,12 +91,7 @@ class BreedDetailsPage extends StatelessWidget {
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(height: 1.3),
-            ),
-          ),
+          Expanded(child: Text(value, style: const TextStyle(height: 1.3))),
         ],
       ),
     );
@@ -115,10 +103,9 @@ class BreedDetailsPage extends StatelessWidget {
       children: [
         Text(
           'Description:',
-          style: Theme.of(context)
-              .textTheme
-              .titleMedium
-              ?.copyWith(fontWeight: FontWeight.bold),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 4),
         Text(

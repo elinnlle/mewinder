@@ -7,10 +7,7 @@ import '../../../common/models/cat_breed.dart';
 class CatDetailsPage extends StatelessWidget {
   final CatImage cat;
 
-  const CatDetailsPage({
-    super.key,
-    required this.cat,
-  });
+  const CatDetailsPage({super.key, required this.cat});
 
   @override
   Widget build(BuildContext context) {
@@ -26,10 +23,7 @@ class CatDetailsPage extends StatelessWidget {
   }
 
   AppBar _buildAppBar(String? title) {
-    return AppBar(
-      title: Text(title ?? 'Котик'),
-      centerTitle: true,
-    );
+    return AppBar(title: Text(title ?? 'Котик'), centerTitle: true);
   }
 
   Widget _buildContent(BuildContext context, CatBreed? breed) {
@@ -38,10 +32,7 @@ class CatDetailsPage extends StatelessWidget {
       children: [
         _buildImage(),
         const SizedBox(height: 16),
-        if (breed != null)
-          _BreedInfo(breed: breed)
-        else
-          _buildEmptyBreedInfo(),
+        if (breed != null) _BreedInfo(breed: breed) else _buildEmptyBreedInfo(),
       ],
     );
   }
@@ -54,9 +45,9 @@ class CatDetailsPage extends StatelessWidget {
         child: CachedNetworkImage(
           imageUrl: cat.url,
           fit: BoxFit.cover,
-          placeholder: (_, __) =>
+          placeholder: (_, _) =>
               const Center(child: CircularProgressIndicator()),
-          errorWidget: (_, __, ___) => const Center(child: Icon(Icons.error)),
+          errorWidget: (_, _, _) => const Center(child: Icon(Icons.error)),
         ),
       ),
     );
@@ -101,10 +92,9 @@ class _BreedInfo extends StatelessWidget {
   Widget _buildTitle(BuildContext context) {
     return Text(
       breed.name,
-      style: Theme.of(context)
-          .textTheme
-          .headlineSmall
-          ?.copyWith(fontWeight: FontWeight.w700),
+      style: Theme.of(
+        context,
+      ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
     );
   }
 
@@ -114,10 +104,9 @@ class _BreedInfo extends StatelessWidget {
       children: [
         Text(
           'Country of origin:',
-          style: Theme.of(context)
-              .textTheme
-              .titleMedium
-              ?.copyWith(fontWeight: FontWeight.bold),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 4),
         Text(
@@ -134,10 +123,9 @@ class _BreedInfo extends StatelessWidget {
       children: [
         Text(
           'Description:',
-          style: Theme.of(context)
-              .textTheme
-              .titleMedium
-              ?.copyWith(fontWeight: FontWeight.bold),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 4),
         Text(

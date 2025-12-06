@@ -23,10 +23,7 @@ class MewinderApp extends StatelessWidget {
   }
 
   ThemeData _buildTheme() {
-    return ThemeData(
-      useMaterial3: true,
-      colorSchemeSeed: Colors.orange,
-    );
+    return ThemeData(useMaterial3: true, colorSchemeSeed: Colors.orange);
   }
 
   Widget _buildMobileTabs() => const _MobileTabs();
@@ -54,12 +51,7 @@ class MewinderApp extends StatelessWidget {
   }
 
   Widget _buildDesktopTabBody() {
-    return const TabBarView(
-      children: [
-        CatSwipePage(),
-        BreedsPage(),
-      ],
-    );
+    return const TabBarView(children: [CatSwipePage(), BreedsPage()]);
   }
 }
 
@@ -73,10 +65,7 @@ class _MobileTabs extends StatefulWidget {
 class _MobileTabsState extends State<_MobileTabs> {
   int _index = 0;
 
-  final _screens = const [
-    CatSwipePage(),
-    BreedsPage(),
-  ];
+  final _screens = const [CatSwipePage(), BreedsPage()];
 
   @override
   Widget build(BuildContext context) {
@@ -91,14 +80,8 @@ class _MobileTabsState extends State<_MobileTabs> {
       selectedIndex: _index,
       onDestinationSelected: _onTabSelected,
       destinations: const [
-        NavigationDestination(
-          icon: Icon(Icons.pets),
-          label: 'Swipes',
-        ),
-        NavigationDestination(
-          icon: Icon(Icons.list),
-          label: 'Breeds',
-        ),
+        NavigationDestination(icon: Icon(Icons.pets), label: 'Swipes'),
+        NavigationDestination(icon: Icon(Icons.list), label: 'Breeds'),
       ],
     );
   }

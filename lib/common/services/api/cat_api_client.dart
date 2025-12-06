@@ -37,10 +37,7 @@ class CatApiClient {
 
   /// Выполнение GET-запроса с API-ключом
   Future<http.Response> _get(Uri url) async {
-    final response = await http.get(
-      url,
-      headers: {'x-api-key': _apiKey},
-    );
+    final response = await http.get(url, headers: {'x-api-key': _apiKey});
 
     _ensureSuccess(response);
     return response;
