@@ -20,6 +20,14 @@ class CatImage {
           .toList(),
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'url': url,
+      'breeds': breeds.map((b) => b.toJson()).toList(),
+    };
+  }
 }
 
 // Модель породы
@@ -43,5 +51,14 @@ class CatBreed {
       origin: json['origin'],
       description: json['description'],
     );
+  }
+  
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'origin': origin,
+      'description': description,
+    };
   }
 }
