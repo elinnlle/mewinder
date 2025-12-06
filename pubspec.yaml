@@ -1,5 +1,5 @@
 name: mewinder
-description: "A new Flutter project."
+description: "Mewinder — приложение в стиле Tinder для просмотра котиков, лайков и изучения пород. Использует TheCatAPI, swipe-жесты, локальное сохранение лайков и список пород."
 publish_to: 'none'
 
 version: 1.0.0+1
@@ -20,14 +20,17 @@ dependencies:
   cached_network_image: ^3.4.1
   
   # Для работы с .env и скрытия приватных ключей
-  flutter_dotenv: ^5.1.0
+  flutter_dotenv: ^6.0.0
+
+  # Локальное хранилище 
+  shared_preferences: ^2.2.2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  # Набор линтов от Flutter (мы подключим их в analysis_options.yaml)
-  flutter_lints: ^5.0.0
+  # Набор линтов от Flutter
+  flutter_lints: ^6.0.0
 
 flutter:
   uses-material-design: true
