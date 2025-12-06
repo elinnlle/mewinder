@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../common/services/api/cat_api_client.dart';
 import '../../../common/models/cat_breed.dart';
+import '../../../common/ui/error_dialog.dart';
 import 'breed_details_page.dart';
 
 class BreedsPage extends StatefulWidget {
@@ -34,7 +35,7 @@ class _BreedsPageState extends State<BreedsPage> {
       final breeds = await _api.fetchBreeds();
       setState(() => _breeds = breeds);
     } catch (e) {
-      setState(() => _error = e.toString());
+      await showErrorDialog(context, e.toString());
     } finally {
       setState(() => _loading = false);
     }
@@ -43,17 +44,12 @@ class _BreedsPageState extends State<BreedsPage> {
   @override
   Widget build(BuildContext context) {
     if (_loading) return _buildLoading();
-    if (_error != null) return _buildError();
 
     return _buildList();
   }
 
   Widget _buildLoading() {
     return const Center(child: CircularProgressIndicator());
-  }
-
-  Widget _buildError() {
-    return Center(child: Text('Error: $_error'));
   }
 
   Widget _buildList() {

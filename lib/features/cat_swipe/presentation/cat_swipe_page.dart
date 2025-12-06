@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../common/services/api/cat_api_client.dart';
 import '../../../common/models/cat_image.dart';
+import '../../../common/ui/error_dialog.dart';
 import 'cat_details_page.dart';
 import 'liked_cats_page.dart';
 
@@ -60,7 +61,7 @@ class _CatSwipePageState extends State<CatSwipePage> {
       final cat = await _apiClient.fetchRandomCat();
       setState(() => _currentCat = cat);
     } catch (e) {
-      setState(() => _error = e.toString());
+      await showErrorDialog(context, e.toString());
     } finally {
       setState(() => _loading = false);
     }
@@ -73,11 +74,9 @@ class _CatSwipePageState extends State<CatSwipePage> {
       body: Center(
         child: _loading
             ? const CircularProgressIndicator()
-            : _error != null
-                ? _buildError()
-                : _currentCat == null
-                    ? _buildNoData()
-                    : _buildContent(),
+            : _currentCat == null
+                ? _buildNoData()
+                : _buildContent(),
       ),
     );
   }
@@ -95,10 +94,6 @@ class _CatSwipePageState extends State<CatSwipePage> {
       ),
       title: const Text('Mewinder'),
     );
-  }
-
-  Widget _buildError() {
-    return Text('Error: $_error', style: const TextStyle(color: Colors.red));
   }
 
   Widget _buildNoData() {
