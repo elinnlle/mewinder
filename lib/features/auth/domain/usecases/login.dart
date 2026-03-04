@@ -10,7 +10,10 @@ class Login {
 
   Future<Result<void>> call(String email, String password) async {
     final emailValidation = Validators.validateEmail(email);
-    final passwordValidation = Validators.validatePassword(password);
+    final passwordValidation = Validators.validatePassword(
+      password,
+      minLength: 6,
+    );
 
     final emailFailure = emailValidation.failureOrNull;
     if (emailFailure != null) {

@@ -10,8 +10,9 @@ class GetAuthStatus {
   Future<Result<AuthSession>> call() async {
     final authorized = await _repository.isAuthorized();
     final email = await _repository.currentEmail();
+    final username = await _repository.currentUsername();
     return Success<AuthSession>(
-      AuthSession(email: email, isAuthorized: authorized),
+      AuthSession(email: email, username: username, isAuthorized: authorized),
     );
   }
 }

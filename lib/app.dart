@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import 'features/auth/presentation/pages/auth_gate.dart';
+import 'features/auth/presentation/pages/account_page.dart';
 import 'features/cats/presentation/pages/breeds_page.dart';
 import 'features/cats/presentation/pages/cat_swipe_page.dart';
 
@@ -18,7 +20,7 @@ class MewinderApp extends StatelessWidget {
     return MaterialApp(
       title: 'Mewinder',
       theme: _buildTheme(),
-      home: _isMobile ? _buildMobileTabs() : _buildDesktopTabs(),
+      home: AuthGate(authorizedChild: _buildMainFlow()),
     );
   }
 
@@ -26,11 +28,12 @@ class MewinderApp extends StatelessWidget {
     return ThemeData(useMaterial3: true, colorSchemeSeed: Colors.orange);
   }
 
-  Widget _buildMobileTabs() => const _MobileTabs();
+  Widget _buildMainFlow() =>
+      _isMobile ? const _MobileTabs() : _buildDesktopTabs();
 
   Widget _buildDesktopTabs() {
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: Scaffold(
         appBar: _buildDesktopAppBar(),
         body: _buildDesktopTabBody(),
@@ -45,13 +48,16 @@ class MewinderApp extends StatelessWidget {
         tabs: [
           Tab(icon: Icon(Icons.pets), text: 'Swipes'),
           Tab(icon: Icon(Icons.list), text: 'Breeds'),
+          Tab(icon: Icon(Icons.person), text: 'Account'),
         ],
       ),
     );
   }
 
   Widget _buildDesktopTabBody() {
-    return const TabBarView(children: [CatSwipePage(), BreedsPage()]);
+    return const TabBarView(
+      children: [CatSwipePage(), BreedsPage(), AccountPage()],
+    );
   }
 }
 
@@ -65,7 +71,7 @@ class _MobileTabs extends StatefulWidget {
 class _MobileTabsState extends State<_MobileTabs> {
   int _index = 0;
 
-  final _screens = const [CatSwipePage(), BreedsPage()];
+  final _screens = const [CatSwipePage(), BreedsPage(), AccountPage()];
 
   @override
   Widget build(BuildContext context) {
@@ -82,6 +88,7 @@ class _MobileTabsState extends State<_MobileTabs> {
       destinations: const [
         NavigationDestination(icon: Icon(Icons.pets), label: 'Swipes'),
         NavigationDestination(icon: Icon(Icons.list), label: 'Breeds'),
+        NavigationDestination(icon: Icon(Icons.person), label: 'Account'),
       ],
     );
   }

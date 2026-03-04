@@ -10,6 +10,9 @@ import '../features/auth/domain/usecases/get_auth_status.dart';
 import '../features/auth/domain/usecases/login.dart';
 import '../features/auth/domain/usecases/logout.dart';
 import '../features/auth/domain/usecases/sign_up.dart';
+import '../features/auth/domain/usecases/update_username.dart';
+import '../features/auth/domain/usecases/change_password.dart';
+import '../features/auth/presentation/state/auth_controller.dart';
 import '../features/cats/data/datasources/local/liked_cats_local_data_source.dart';
 import '../features/cats/data/datasources/remote/cats_remote_data_source.dart';
 import '../features/cats/data/repositories/cats_repository_impl.dart';
@@ -112,6 +115,29 @@ Future<void> configureDependencies() async {
   if (!sl.isRegistered<GetAuthStatus>()) {
     sl.registerLazySingleton<GetAuthStatus>(
       () => GetAuthStatus(sl<AuthRepository>()),
+    );
+  }
+  if (!sl.isRegistered<UpdateUsername>()) {
+    sl.registerLazySingleton<UpdateUsername>(
+      () => UpdateUsername(sl<AuthRepository>()),
+    );
+  }
+  if (!sl.isRegistered<ChangePassword>()) {
+    sl.registerLazySingleton<ChangePassword>(
+      () => ChangePassword(sl<AuthRepository>()),
+    );
+  }
+
+  if (!sl.isRegistered<AuthController>()) {
+    sl.registerLazySingleton<AuthController>(
+      () => AuthController(
+        sl<SignUp>(),
+        sl<Login>(),
+        sl<Logout>(),
+        sl<GetAuthStatus>(),
+        sl<UpdateUsername>(),
+        sl<ChangePassword>(),
+      ),
     );
   }
 
