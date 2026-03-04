@@ -4,12 +4,10 @@ import 'package:http/http.dart' as http;
 
 import '../../../core/failures.dart';
 import '../../../core/result.dart';
-import '../../../secrets.dart';
 
 class CatApiClient {
   static const String _baseUrl = 'https://api.thecatapi.com/v1';
-
-  String get _apiKey => catApiKey;
+  static const String _apiKey = String.fromEnvironment('CAT_API_KEY');
 
   /// Получение случайного изображения кота
   Future<Result<List<dynamic>>> fetchRandomCat() {
@@ -29,7 +27,12 @@ class CatApiClient {
   /// Выполнение GET-запроса с API-ключом и безопасный JSON-декод списка
   Future<Result<List<dynamic>>> _fetchList(Uri url) async {
     try {
-      final response = await http.get(url, headers: {'x-api-key': _apiKey});
+      final headers = <String, String>{};
+      if (_apiKey.isNotEmpty) {
+        headers['x-api-key'] = _apiKey;
+      }
+
+      final response = await http.get(url, headers: headers);
 
       // Проверка HTTP-статуса
       if (response.statusCode != 200) {
