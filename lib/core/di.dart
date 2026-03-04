@@ -1,7 +1,15 @@
 import 'package:get_it/get_it.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../common/services/api/cat_api_client.dart';
+import '../features/auth/data/datasources/local/auth_local_data_source.dart';
+import '../features/auth/data/repositories/auth_repository_impl.dart';
+import '../features/auth/domain/repositories/auth_repository.dart';
+import '../features/auth/domain/usecases/get_auth_status.dart';
+import '../features/auth/domain/usecases/login.dart';
+import '../features/auth/domain/usecases/logout.dart';
+import '../features/auth/domain/usecases/sign_up.dart';
 import '../features/cats/data/datasources/local/liked_cats_local_data_source.dart';
 import '../features/cats/data/datasources/remote/cats_remote_data_source.dart';
 import '../features/cats/data/repositories/cats_repository_impl.dart';
@@ -19,55 +27,114 @@ import '../features/cats/presentation/state/liked_cats_controller.dart';
 final GetIt sl = GetIt.instance;
 
 Future<void> configureDependencies() async {
-  if (sl.isRegistered<CatsRepository>()) {
-    return;
+  if (!sl.isRegistered<SharedPreferences>()) {
+    final preferences = await SharedPreferences.getInstance();
+    sl.registerSingleton<SharedPreferences>(preferences);
   }
 
-  final preferences = await SharedPreferences.getInstance();
-  sl.registerSingleton<SharedPreferences>(preferences);
+  if (!sl.isRegistered<FlutterSecureStorage>()) {
+    sl.registerSingleton<FlutterSecureStorage>(const FlutterSecureStorage());
+  }
 
-  sl.registerLazySingleton<CatApiClient>(CatApiClient.new);
+  if (!sl.isRegistered<CatApiClient>()) {
+    sl.registerLazySingleton<CatApiClient>(CatApiClient.new);
+  }
 
-  sl.registerLazySingleton<CatsRemoteDataSource>(
-    () => CatsRemoteDataSourceImpl(sl<CatApiClient>()),
-  );
+  if (!sl.isRegistered<CatsRemoteDataSource>()) {
+    sl.registerLazySingleton<CatsRemoteDataSource>(
+      () => CatsRemoteDataSourceImpl(sl<CatApiClient>()),
+    );
+  }
 
-  sl.registerLazySingleton<LikedCatsLocalDataSource>(
-    () => LikedCatsLocalDataSourceImpl(sl<SharedPreferences>()),
-  );
+  if (!sl.isRegistered<LikedCatsLocalDataSource>()) {
+    sl.registerLazySingleton<LikedCatsLocalDataSource>(
+      () => LikedCatsLocalDataSourceImpl(sl<SharedPreferences>()),
+    );
+  }
 
-  sl.registerLazySingleton<CatsRepository>(
-    () => CatsRepositoryImpl(
-      sl<CatsRemoteDataSource>(),
-      sl<LikedCatsLocalDataSource>(),
-    ),
-  );
+  if (!sl.isRegistered<CatsRepository>()) {
+    sl.registerLazySingleton<CatsRepository>(
+      () => CatsRepositoryImpl(
+        sl<CatsRemoteDataSource>(),
+        sl<LikedCatsLocalDataSource>(),
+      ),
+    );
+  }
 
-  sl.registerLazySingleton<GetRandomCat>(
-    () => GetRandomCat(sl<CatsRepository>()),
-  );
-  sl.registerLazySingleton<GetBreeds>(() => GetBreeds(sl<CatsRepository>()));
-  sl.registerLazySingleton<GetLikedCats>(
-    () => GetLikedCats(sl<CatsRepository>()),
-  );
-  sl.registerLazySingleton<LikeCat>(() => LikeCat(sl<CatsRepository>()));
-  sl.registerLazySingleton<DislikeCat>(() => DislikeCat(sl<CatsRepository>()));
-  sl.registerLazySingleton<RemoveLikedCatAt>(
-    () => RemoveLikedCatAt(sl<CatsRepository>()),
-  );
+  if (!sl.isRegistered<AuthLocalDataSource>()) {
+    sl.registerLazySingleton<AuthLocalDataSource>(
+      () => AuthLocalDataSourceImpl(sl<FlutterSecureStorage>()),
+    );
+  }
 
-  sl.registerFactory<CatSwipeController>(
-    () => CatSwipeController(
-      sl<GetRandomCat>(),
-      sl<GetLikedCats>(),
-      sl<LikeCat>(),
-      sl<DislikeCat>(),
-    ),
-  );
+  if (!sl.isRegistered<AuthRepository>()) {
+    sl.registerLazySingleton<AuthRepository>(
+      () => AuthRepositoryImpl(sl<AuthLocalDataSource>()),
+    );
+  }
 
-  sl.registerFactory<BreedsController>(() => BreedsController(sl<GetBreeds>()));
+  if (!sl.isRegistered<GetRandomCat>()) {
+    sl.registerLazySingleton<GetRandomCat>(
+      () => GetRandomCat(sl<CatsRepository>()),
+    );
+  }
+  if (!sl.isRegistered<GetBreeds>()) {
+    sl.registerLazySingleton<GetBreeds>(() => GetBreeds(sl<CatsRepository>()));
+  }
+  if (!sl.isRegistered<GetLikedCats>()) {
+    sl.registerLazySingleton<GetLikedCats>(
+      () => GetLikedCats(sl<CatsRepository>()),
+    );
+  }
+  if (!sl.isRegistered<LikeCat>()) {
+    sl.registerLazySingleton<LikeCat>(() => LikeCat(sl<CatsRepository>()));
+  }
+  if (!sl.isRegistered<DislikeCat>()) {
+    sl.registerLazySingleton<DislikeCat>(
+      () => DislikeCat(sl<CatsRepository>()),
+    );
+  }
+  if (!sl.isRegistered<RemoveLikedCatAt>()) {
+    sl.registerLazySingleton<RemoveLikedCatAt>(
+      () => RemoveLikedCatAt(sl<CatsRepository>()),
+    );
+  }
 
-  sl.registerFactory<LikedCatsController>(
-    () => LikedCatsController(sl<GetLikedCats>(), sl<RemoveLikedCatAt>()),
-  );
+  if (!sl.isRegistered<SignUp>()) {
+    sl.registerLazySingleton<SignUp>(() => SignUp(sl<AuthRepository>()));
+  }
+  if (!sl.isRegistered<Login>()) {
+    sl.registerLazySingleton<Login>(() => Login(sl<AuthRepository>()));
+  }
+  if (!sl.isRegistered<Logout>()) {
+    sl.registerLazySingleton<Logout>(() => Logout(sl<AuthRepository>()));
+  }
+  if (!sl.isRegistered<GetAuthStatus>()) {
+    sl.registerLazySingleton<GetAuthStatus>(
+      () => GetAuthStatus(sl<AuthRepository>()),
+    );
+  }
+
+  if (!sl.isRegistered<CatSwipeController>()) {
+    sl.registerFactory<CatSwipeController>(
+      () => CatSwipeController(
+        sl<GetRandomCat>(),
+        sl<GetLikedCats>(),
+        sl<LikeCat>(),
+        sl<DislikeCat>(),
+      ),
+    );
+  }
+
+  if (!sl.isRegistered<BreedsController>()) {
+    sl.registerFactory<BreedsController>(
+      () => BreedsController(sl<GetBreeds>()),
+    );
+  }
+
+  if (!sl.isRegistered<LikedCatsController>()) {
+    sl.registerFactory<LikedCatsController>(
+      () => LikedCatsController(sl<GetLikedCats>(), sl<RemoveLikedCatAt>()),
+    );
+  }
 }
