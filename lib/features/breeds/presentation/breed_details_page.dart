@@ -41,6 +41,9 @@ class BreedDetailsPage extends StatelessWidget {
   }
 
   Widget _buildOrigin(BuildContext context) {
+    final origin = breed.origin;
+    if (origin == null || origin.isEmpty) return const SizedBox.shrink();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -51,7 +54,7 @@ class BreedDetailsPage extends StatelessWidget {
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 4),
-        Text(breed.origin!, style: Theme.of(context).textTheme.bodyMedium),
+        Text(origin, style: Theme.of(context).textTheme.bodyMedium),
       ],
     );
   }
@@ -98,6 +101,11 @@ class BreedDetailsPage extends StatelessWidget {
   }
 
   Widget _buildDescription(BuildContext context) {
+    final description = breed.description;
+    if (description == null || description.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -109,7 +117,7 @@ class BreedDetailsPage extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          breed.description!,
+          description,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(height: 1.3),
           textAlign: TextAlign.justify,
         ),

@@ -85,9 +85,8 @@ class _BreedInfo extends StatelessWidget {
     );
   }
 
-  bool get _hasOrigin => breed.origin != null && breed.origin!.isNotEmpty;
-  bool get _hasDescription =>
-      breed.description != null && breed.description!.isNotEmpty;
+  bool get _hasOrigin => (breed.origin ?? '').isNotEmpty;
+  bool get _hasDescription => (breed.description ?? '').isNotEmpty;
 
   Widget _buildTitle(BuildContext context) {
     return Text(
@@ -99,6 +98,9 @@ class _BreedInfo extends StatelessWidget {
   }
 
   Widget _buildOrigin(BuildContext context) {
+    final origin = breed.origin;
+    if (origin == null || origin.isEmpty) return const SizedBox.shrink();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -110,7 +112,7 @@ class _BreedInfo extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          breed.origin!,
+          origin,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(height: 1.3),
         ),
       ],
@@ -118,6 +120,11 @@ class _BreedInfo extends StatelessWidget {
   }
 
   Widget _buildDescription(BuildContext context) {
+    final description = breed.description;
+    if (description == null || description.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -129,7 +136,7 @@ class _BreedInfo extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          breed.description!,
+          description,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(height: 1.3),
           textAlign: TextAlign.justify,
         ),

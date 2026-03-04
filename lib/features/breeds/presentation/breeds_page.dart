@@ -61,10 +61,11 @@ class _BreedsPageState extends State<BreedsPage> {
 
   Widget _buildListTile(int index) {
     final breed = _breeds[index];
+    final origin = breed.origin;
 
     return ListTile(
       title: Text(breed.name),
-      subtitle: breed.origin != null ? Text(breed.origin!) : null,
+      subtitle: (origin == null || origin.isEmpty) ? null : Text(origin),
       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
       onTap: () => _openBreedDetails(breed),
     );

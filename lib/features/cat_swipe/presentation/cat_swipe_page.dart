@@ -24,7 +24,7 @@ class _CatSwipePageState extends State<CatSwipePage>
     with SingleTickerProviderStateMixin {
   final _apiClient = CatApiClient();
 
-  late SharedPreferences _prefs;
+  SharedPreferences? _prefs;
 
   CatImage? _currentCat;
   CatImage? _nextCat;
@@ -109,12 +109,13 @@ class _CatSwipePageState extends State<CatSwipePage>
   }
 
   Future<void> _initPrefs() async {
-    _prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferences.getInstance();
 
     setState(() {
-      _likes = _prefs.getInt('likes') ?? 0;
+      _prefs = prefs;
+      _likes = prefs.getInt('likes') ?? 0;
 
-      _likedCats = (_prefs.getStringList('likedCats') ?? [])
+      _likedCats = (prefs.getStringList('likedCats') ?? [])
           .map(
             (e) => CatImage.fromJson(Map<String, dynamic>.from(jsonDecode(e))),
           )
@@ -255,6 +256,9 @@ class _CatSwipePageState extends State<CatSwipePage>
   }
 
   Widget _buildSwipeCard(Color primary) {
+    final currentCat = _currentCat;
+    if (currentCat == null) return const SizedBox.shrink();
+
     return GestureDetector(
       onTap: _openCatDetails,
       onPanEnd: _handleSwipe,
@@ -264,7 +268,7 @@ class _CatSwipePageState extends State<CatSwipePage>
           width: 300,
           height: 300,
           child: CachedNetworkImage(
-            imageUrl: _currentCat!.url,
+            imageUrl: currentCat.url,
             fit: BoxFit.cover,
             placeholder: (_, _) => Shimmer.fromColors(
               baseColor: primary.withValues(alpha: 0.25),
@@ -279,10 +283,13 @@ class _CatSwipePageState extends State<CatSwipePage>
   }
 
   Widget _buildBreedName() {
+    final currentCat = _currentCat;
+    final breedName = (currentCat != null && currentCat.breeds.isNotEmpty)
+        ? currentCat.breeds.first.name
+        : 'Unknown breed';
+
     return Text(
-      _currentCat!.breeds.isNotEmpty
-          ? _currentCat!.breeds.first.name
-          : 'Unknown breed',
+      breedName,
       style: const TextStyle(fontSize: 20),
     );
   }
@@ -310,11 +317,14 @@ class _CatSwipePageState extends State<CatSwipePage>
   }
 
   void _like() {
+    final currentCat = _currentCat;
+    if (currentCat == null) return;
+
     setState(() {
       _likes++;
-      _prefs.setInt('likes', _likes);
-      _likedCats.add(_currentCat!);
-      _prefs.setStringList(
+      _prefs?.setInt('likes', _likes);
+      _likedCats.add(currentCat);
+      _prefs?.setStringList(
         'likedCats',
         _likedCats.map((c) => jsonEncode(c.toJson())).toList(),
       );
@@ -326,10 +336,11 @@ class _CatSwipePageState extends State<CatSwipePage>
   void _dislike() => _showNextCat();
 
   void _openCatDetails() {
-    if (_currentCat == null) return;
+    final currentCat = _currentCat;
+    if (currentCat == null) return;
 
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => CatDetailsPage(cat: _currentCat!)),
+      MaterialPageRoute(builder: (_) => CatDetailsPage(cat: currentCat)),
     );
   }
 
@@ -339,12 +350,12 @@ class _CatSwipePageState extends State<CatSwipePage>
       MaterialPageRoute(builder: (_) => LikedCatsPage(likedCats: _likedCats)),
     );
 
-    if (updatedList != null) {
+    if (updatedList is List<CatImage>) {
       setState(() {
         _likedCats = updatedList;
         _likes = _likedCats.length;
-        _prefs.setInt('likes', _likes);
-        _prefs.setStringList(
+        _prefs?.setInt('likes', _likes);
+        _prefs?.setStringList(
           'likedCats',
           _likedCats.map((c) => jsonEncode(c.toJson())).toList(),
         );
