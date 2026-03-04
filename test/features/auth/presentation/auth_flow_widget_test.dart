@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:mewinder/core/analytics/noop_analytics_service.dart';
+import 'package:mewinder/core/failures.dart';
 import 'package:mewinder/core/result.dart';
 import 'package:mewinder/features/auth/domain/repositories/auth_repository.dart';
 import 'package:mewinder/features/auth/domain/usecases/get_auth_status.dart';
@@ -17,11 +18,18 @@ class _FakeAuthRepository implements AuthRepository {
   bool _authorized;
   String? _email;
   String? _username;
+  bool failLogin;
 
-  _FakeAuthRepository({bool authorized = false}) : _authorized = authorized;
+  _FakeAuthRepository({bool authorized = false, this.failLogin = false})
+    : _authorized = authorized;
 
   @override
   Future<Result<void>> login(String email, String password) async {
+    if (failLogin) {
+      return const FailureResult<void>(
+        ValidationFailure('invalid_credentials'),
+      );
+    }
     _authorized = true;
     _email = email;
     _username = email.split('@').first;
@@ -122,5 +130,49 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('MAIN_FLOW'), findsOneWidget);
+  });
+
+  testWidgets('failed login shows error and keeps auth flow', (tester) async {
+    final repository = _FakeAuthRepository(failLogin: true);
+    final controller = _buildController(repository);
+
+    await tester.pumpWidget(_buildTestApp(controller));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byType(TextFormField).first,
+      'user@example.com',
+    );
+    await tester.enterText(find.byType(TextFormField).at(1), 'abc123');
+    await tester.tap(find.text('Log in'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Invalid email or password'), findsAtLeastNWidgets(1));
+    expect(find.text('MAIN_FLOW'), findsNothing);
+  });
+
+  testWidgets('sign up shows mismatch error for confirm password', (
+    tester,
+  ) async {
+    final repository = _FakeAuthRepository();
+    final controller = _buildController(repository);
+
+    await tester.pumpWidget(_buildTestApp(controller));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('No account? Sign up'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byType(TextFormField).first,
+      'user@example.com',
+    );
+    await tester.enterText(find.byType(TextFormField).at(1), 'abc123');
+    await tester.enterText(find.byType(TextFormField).at(2), 'abc124');
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Sign up'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Passwords do not match'), findsOneWidget);
+    expect(find.text('MAIN_FLOW'), findsNothing);
   });
 }
