@@ -23,9 +23,7 @@ jobs:
       - name: Create fallback secrets.dart for CI
         run: |
           if [ ! -f lib/secrets.dart ]; then
-            cat > lib/secrets.dart <<'EOF'
-            const catApiKey = "";
-            EOF
+            printf 'const catApiKey = "";\n' > lib/secrets.dart
           fi
 
       - name: Install dependencies
