@@ -1,8 +1,13 @@
 import 'package:get_it/get_it.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 import '../common/services/api/cat_api_client.dart';
+import 'analytics/analytics.dart';
+import 'analytics/firebase_analytics_service.dart';
+import 'analytics/noop_analytics_service.dart';
 import 'services/secure_key_value_store.dart';
 import 'services/onboarding_storage.dart';
 import '../features/auth/data/datasources/local/auth_local_data_source.dart';
@@ -30,6 +35,10 @@ import '../features/cats/presentation/state/cat_swipe_controller.dart';
 import '../features/cats/presentation/state/liked_cats_controller.dart';
 
 final GetIt sl = GetIt.instance;
+const bool _isFlutterTest = bool.fromEnvironment('FLUTTER_TEST');
+const bool _enableFirebaseAnalytics = bool.fromEnvironment(
+  'ENABLE_FIREBASE_ANALYTICS',
+);
 
 Future<void> configureDependencies() async {
   if (!sl.isRegistered<SharedPreferences>()) {
@@ -41,6 +50,21 @@ Future<void> configureDependencies() async {
     sl.registerLazySingleton<OnboardingStorage>(
       () => OnboardingStorageImpl(sl<SharedPreferences>()),
     );
+  }
+
+  if (!sl.isRegistered<Analytics>()) {
+    if (!_isFlutterTest && _enableFirebaseAnalytics) {
+      try {
+        await Firebase.initializeApp();
+        sl.registerSingleton<Analytics>(
+          FirebaseAnalyticsService(FirebaseAnalytics.instance),
+        );
+      } catch (_) {
+        sl.registerSingleton<Analytics>(const NoopAnalyticsService());
+      }
+    } else {
+      sl.registerSingleton<Analytics>(const NoopAnalyticsService());
+    }
   }
 
   if (!sl.isRegistered<FlutterSecureStorage>()) {
@@ -151,6 +175,7 @@ Future<void> configureDependencies() async {
         sl<GetAuthStatus>(),
         sl<UpdateUsername>(),
         sl<ChangePassword>(),
+        sl<Analytics>(),
       ),
     );
   }

@@ -20,6 +20,14 @@ jobs:
       - name: Flutter version
         run: flutter --version
 
+      - name: Create fallback secrets.dart for CI
+        run: |
+          if [ ! -f lib/secrets.dart ]; then
+            cat > lib/secrets.dart <<'EOF'
+            const catApiKey = "";
+            EOF
+          fi
+
       - name: Install dependencies
         run: flutter pub get
 

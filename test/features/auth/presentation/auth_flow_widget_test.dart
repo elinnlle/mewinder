@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:mewinder/core/analytics/noop_analytics_service.dart';
 import 'package:mewinder/core/result.dart';
 import 'package:mewinder/features/auth/domain/repositories/auth_repository.dart';
 import 'package:mewinder/features/auth/domain/usecases/get_auth_status.dart';
@@ -82,6 +83,7 @@ AuthController _buildController(_FakeAuthRepository repository) {
     GetAuthStatus(repository),
     UpdateUsername(repository),
     ChangePassword(repository),
+    const NoopAnalyticsService(),
   );
 }
 

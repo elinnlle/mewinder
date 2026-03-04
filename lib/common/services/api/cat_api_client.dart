@@ -4,10 +4,14 @@ import 'package:http/http.dart' as http;
 
 import '../../../core/failures.dart';
 import '../../../core/result.dart';
+import '../../../secrets.dart';
 
 class CatApiClient {
   static const String _baseUrl = 'https://api.thecatapi.com/v1';
-  static const String _apiKey = String.fromEnvironment('CAT_API_KEY');
+  static const String _apiKey = String.fromEnvironment(
+    'CAT_API_KEY',
+    defaultValue: catApiKey,
+  );
 
   /// Получение случайного изображения кота
   Future<Result<List<dynamic>>> fetchRandomCat() {

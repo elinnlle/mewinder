@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import '../../../../core/analytics/analytics.dart';
 import '../../../../core/failures.dart';
 import '../../../../core/result.dart';
 import '../../domain/entities/auth_session.dart';
@@ -17,6 +18,7 @@ class AuthController extends ChangeNotifier {
   final GetAuthStatus _getAuthStatus;
   final UpdateUsername _updateUsername;
   final ChangePassword _changePassword;
+  final Analytics _analytics;
 
   bool _isInitialized = false;
   bool _hasResolvedInitialStatus = false;
@@ -33,6 +35,7 @@ class AuthController extends ChangeNotifier {
     this._getAuthStatus,
     this._updateUsername,
     this._changePassword,
+    this._analytics,
   );
 
   bool get isLoading => _isLoading;
@@ -76,6 +79,12 @@ class AuthController extends ChangeNotifier {
 
     final result = await _login(email, password);
     final success = await _handleAuthMutationResult(result);
+    await _logAuthOutcome(
+      success: success,
+      successEvent: 'login_success',
+      errorEvent: 'login_error',
+      email: email,
+    );
 
     _setLoading(false);
     return success;
@@ -87,6 +96,12 @@ class AuthController extends ChangeNotifier {
 
     final result = await _signUp(email, password);
     final success = await _handleAuthMutationResult(result);
+    await _logAuthOutcome(
+      success: success,
+      successEvent: 'signup_success',
+      errorEvent: 'signup_error',
+      email: email,
+    );
 
     _setLoading(false);
     return success;
@@ -208,5 +223,37 @@ class AuthController extends ChangeNotifier {
       default:
         return failure.message;
     }
+  }
+
+  Future<void> _logAuthOutcome({
+    required bool success,
+    required String successEvent,
+    required String errorEvent,
+    required String email,
+  }) async {
+    try {
+      if (success) {
+        await _analytics.logEvent(
+          successEvent,
+          params: {'email_domain': _extractEmailDomain(email)},
+        );
+        return;
+      }
+
+      await _analytics.logEvent(
+        errorEvent,
+        params: {
+          'reason': _errorMessage ?? 'unknown_error',
+          'email_domain': _extractEmailDomain(email),
+        },
+      );
+    } catch (_) {}
+  }
+
+  String _extractEmailDomain(String email) {
+    final parts = email.split('@');
+    if (parts.length < 2) return 'invalid';
+    final domain = parts.last.trim();
+    return domain.isEmpty ? 'invalid' : domain;
   }
 }
