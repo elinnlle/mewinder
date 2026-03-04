@@ -1,10 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import 'core/di.dart';
+import 'core/services/onboarding_storage.dart';
 import 'features/auth/presentation/pages/auth_gate.dart';
 import 'features/auth/presentation/pages/account_page.dart';
 import 'features/cats/presentation/pages/breeds_page.dart';
 import 'features/cats/presentation/pages/cat_swipe_page.dart';
+import 'features/onboarding/presentation/onboarding_page.dart';
 
 class MewinderApp extends StatelessWidget {
   const MewinderApp({super.key});
@@ -20,7 +23,7 @@ class MewinderApp extends StatelessWidget {
     return MaterialApp(
       title: 'Mewinder',
       theme: _buildTheme(),
-      home: AuthGate(authorizedChild: _buildMainFlow()),
+      home: _AppEntryGate(authorizedChild: _buildMainFlow()),
     );
   }
 
@@ -58,6 +61,58 @@ class MewinderApp extends StatelessWidget {
     return const TabBarView(
       children: [CatSwipePage(), BreedsPage(), AccountPage()],
     );
+  }
+}
+
+class _AppEntryGate extends StatefulWidget {
+  final Widget authorizedChild;
+
+  const _AppEntryGate({required this.authorizedChild});
+
+  @override
+  State<_AppEntryGate> createState() => _AppEntryGateState();
+}
+
+class _AppEntryGateState extends State<_AppEntryGate> {
+  final OnboardingStorage _onboardingStorage = sl<OnboardingStorage>();
+  bool? _isOnboardingCompleted;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadOnboardingStatus();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isCompleted = _isOnboardingCompleted;
+    if (isCompleted == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    if (!isCompleted) {
+      return OnboardingPage(onCompleted: _completeOnboarding);
+    }
+
+    return AuthGate(authorizedChild: widget.authorizedChild);
+  }
+
+  Future<void> _loadOnboardingStatus() async {
+    final completed = await _onboardingStorage.isCompleted();
+    if (!mounted) return;
+
+    setState(() {
+      _isOnboardingCompleted = completed;
+    });
+  }
+
+  Future<void> _completeOnboarding() async {
+    await _onboardingStorage.setCompleted(true);
+    if (!mounted) return;
+
+    setState(() {
+      _isOnboardingCompleted = true;
+    });
   }
 }
 

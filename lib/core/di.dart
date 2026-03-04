@@ -3,6 +3,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../common/services/api/cat_api_client.dart';
+import 'services/onboarding_storage.dart';
 import '../features/auth/data/datasources/local/auth_local_data_source.dart';
 import '../features/auth/data/repositories/auth_repository_impl.dart';
 import '../features/auth/domain/repositories/auth_repository.dart';
@@ -33,6 +34,12 @@ Future<void> configureDependencies() async {
   if (!sl.isRegistered<SharedPreferences>()) {
     final preferences = await SharedPreferences.getInstance();
     sl.registerSingleton<SharedPreferences>(preferences);
+  }
+
+  if (!sl.isRegistered<OnboardingStorage>()) {
+    sl.registerLazySingleton<OnboardingStorage>(
+      () => OnboardingStorageImpl(sl<SharedPreferences>()),
+    );
   }
 
   if (!sl.isRegistered<FlutterSecureStorage>()) {
