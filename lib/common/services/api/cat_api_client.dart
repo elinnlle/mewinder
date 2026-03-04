@@ -1,63 +1,56 @@
 import 'dart:convert';
+
 import 'package:http/http.dart' as http;
 
-import '../../models/cat_image.dart';
-import '../../models/cat_breed.dart';
+import '../../../core/failures.dart';
+import '../../../core/result.dart';
 import '../../../secrets.dart';
 
 class CatApiClient {
-  static const _baseUrl = 'https://api.thecatapi.com/v1';
+  static const String _baseUrl = 'https://api.thecatapi.com/v1';
 
   String get _apiKey => catApiKey;
 
   /// Получение случайного изображения кота
-  Future<CatImage> fetchRandomCat() async {
-    final url = Uri.parse(
-      '$_baseUrl/images/search?mime_types=jpg,png&has_breeds=1',
-    );
-
-    final response = await _get(url);
-    final data = _parseList(response);
-
-    return CatImage.fromJson(data.first);
+  Future<Result<List<dynamic>>> fetchRandomCat() {
+    final url = _buildUrl('/images/search?mime_types=jpg,png&has_breeds=1');
+    return _fetchList(url);
   }
 
   /// Получение списка пород
-  Future<List<CatBreed>> fetchBreeds() async {
+  Future<Result<List<dynamic>>> fetchBreeds() {
     final url = _buildUrl('/breeds');
-
-    final response = await _get(url);
-    final data = _parseList(response);
-
-    return data.map((json) => CatBreed.fromJson(json)).toList();
+    return _fetchList(url);
   }
 
   /// Формирование полного URL
   Uri _buildUrl(String path) => Uri.parse('$_baseUrl$path');
 
-  /// Выполнение GET-запроса с API-ключом
-  Future<http.Response> _get(Uri url) async {
-    final response = await http.get(url, headers: {'x-api-key': _apiKey});
+  /// Выполнение GET-запроса с API-ключом и безопасный JSON-декод списка
+  Future<Result<List<dynamic>>> _fetchList(Uri url) async {
+    try {
+      final response = await http.get(url, headers: {'x-api-key': _apiKey});
 
-    _ensureSuccess(response);
-    return response;
-  }
+      // Проверка HTTP-статуса
+      if (response.statusCode != 200) {
+        return FailureResult<List<dynamic>>(
+          NetworkFailure('Request failed with status: ${response.statusCode}'),
+        );
+      }
 
-  /// Проверка HTTP-статуса
-  void _ensureSuccess(http.Response response) {
-    if (response.statusCode != 200) {
-      throw Exception('Ошибка загрузки котика: ${response.statusCode}');
+      // Безопасный JSON-декод, ожидается список
+      final decoded = jsonDecode(response.body);
+      if (decoded is! List<dynamic>) {
+        return const FailureResult<List<dynamic>>(
+          UnknownFailure('Unexpected response format: expected a list'),
+        );
+      }
+
+      return Success<List<dynamic>>(decoded);
+    } catch (_) {
+      return const FailureResult<List<dynamic>>(
+        NetworkFailure('Network request failed'),
+      );
     }
-  }
-
-  /// Безопасный JSON-декод, ожидается список
-  List<dynamic> _parseList(http.Response response) {
-    final data = jsonDecode(response.body) as List<dynamic>;
-
-    if (data.isEmpty) {
-      throw Exception('API вернул пустой список');
-    }
-
-    return data;
   }
 }

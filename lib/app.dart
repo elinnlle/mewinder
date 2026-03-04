@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import 'features/cat_swipe/presentation/cat_swipe_page.dart';
-import 'features/breeds/presentation/breeds_page.dart';
+import 'features/cats/presentation/pages/breeds_page.dart';
+import 'features/cats/presentation/pages/cat_swipe_page.dart';
 
 class MewinderApp extends StatelessWidget {
   const MewinderApp({super.key});
