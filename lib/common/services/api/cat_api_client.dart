@@ -8,10 +8,8 @@ import '../../../secrets.dart';
 
 class CatApiClient {
   static const String _baseUrl = 'https://api.thecatapi.com/v1';
-  static const String _apiKey = String.fromEnvironment(
-    'CAT_API_KEY',
-    defaultValue: catApiKey,
-  );
+  static const String _envApiKey = String.fromEnvironment('CAT_API_KEY');
+  static String get _apiKey => _envApiKey.isNotEmpty ? _envApiKey : catApiKey;
 
   /// Получение случайного изображения кота
   Future<Result<List<dynamic>>> fetchRandomCat() {
