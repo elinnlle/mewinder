@@ -26,7 +26,7 @@ class _AuthGateState extends State<AuthGate> {
   void initState() {
     super.initState();
     _controller = widget.controllerOverride ?? sl<AuthController>();
-    _ownsController = widget.controllerOverride != null;
+    _ownsController = widget.controllerOverride == null;
     _controller.addListener(_onChanged);
     _controller.initialize();
   }
