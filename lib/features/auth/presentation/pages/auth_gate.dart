@@ -6,8 +6,13 @@ import 'auth_flow.dart';
 
 class AuthGate extends StatefulWidget {
   final Widget authorizedChild;
+  final AuthController? controllerOverride;
 
-  const AuthGate({super.key, required this.authorizedChild});
+  const AuthGate({
+    super.key,
+    required this.authorizedChild,
+    this.controllerOverride,
+  });
 
   @override
   State<AuthGate> createState() => _AuthGateState();
@@ -15,11 +20,13 @@ class AuthGate extends StatefulWidget {
 
 class _AuthGateState extends State<AuthGate> {
   late final AuthController _controller;
+  late final bool _ownsController;
 
   @override
   void initState() {
     super.initState();
-    _controller = sl<AuthController>();
+    _controller = widget.controllerOverride ?? sl<AuthController>();
+    _ownsController = widget.controllerOverride != null;
     _controller.addListener(_onChanged);
     _controller.initialize();
   }
@@ -27,6 +34,9 @@ class _AuthGateState extends State<AuthGate> {
   @override
   void dispose() {
     _controller.removeListener(_onChanged);
+    if (_ownsController) {
+      _controller.dispose();
+    }
     super.dispose();
   }
 

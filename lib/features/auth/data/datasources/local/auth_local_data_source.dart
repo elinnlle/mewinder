@@ -1,7 +1,6 @@
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
 import '../../../../../core/failures.dart';
 import '../../../../../core/result.dart';
+import '../../../../../core/services/secure_key_value_store.dart';
 
 abstract class AuthLocalDataSource {
   Future<Result<void>> saveCredentials(String email, String password);
@@ -19,7 +18,7 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   static const _usernameKey = 'auth_username';
   static const _authorizedKey = 'auth_authorized';
 
-  final FlutterSecureStorage _storage;
+  final SecureKeyValueStore _storage;
 
   const AuthLocalDataSourceImpl(this._storage);
 

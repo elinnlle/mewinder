@@ -3,6 +3,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../common/services/api/cat_api_client.dart';
+import 'services/secure_key_value_store.dart';
 import 'services/onboarding_storage.dart';
 import '../features/auth/data/datasources/local/auth_local_data_source.dart';
 import '../features/auth/data/repositories/auth_repository_impl.dart';
@@ -46,6 +47,12 @@ Future<void> configureDependencies() async {
     sl.registerSingleton<FlutterSecureStorage>(const FlutterSecureStorage());
   }
 
+  if (!sl.isRegistered<SecureKeyValueStore>()) {
+    sl.registerLazySingleton<SecureKeyValueStore>(
+      () => FlutterSecureKeyValueStore(sl<FlutterSecureStorage>()),
+    );
+  }
+
   if (!sl.isRegistered<CatApiClient>()) {
     sl.registerLazySingleton<CatApiClient>(CatApiClient.new);
   }
@@ -73,7 +80,7 @@ Future<void> configureDependencies() async {
 
   if (!sl.isRegistered<AuthLocalDataSource>()) {
     sl.registerLazySingleton<AuthLocalDataSource>(
-      () => AuthLocalDataSourceImpl(sl<FlutterSecureStorage>()),
+      () => AuthLocalDataSourceImpl(sl<SecureKeyValueStore>()),
     );
   }
 
